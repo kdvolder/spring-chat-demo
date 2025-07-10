@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Spring Chat Demo</title>
+    <link rel="stylesheet" href="/assets/style.css">
+</head>
+<body>
+    <h1>Spring Chat Demo</h1>
+    
+    <div id="userInfo">Loading user info...</div>
+    <div id="status">Disconnected</div>
+    
+    <div id="messages"></div>
+    
+    <input type="text" id="messageInput" placeholder="Type your message..." />
+    <button id="sendButton" disabled>Send</button>
+
+    <!-- External JavaScript libraries -->
+    <script src="https://cdn.jsdelivr.net/npm/sockjs-client@1/dist/sockjs.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@stomp/stompjs@7/bundles/stomp.umd.min.js"></script>
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    
+    <!-- Our chat application JavaScript -->
+    <script src="/assets/chat.js"></script>
+</body>
+</html> 
