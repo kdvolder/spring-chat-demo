@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>CSRF Default Behavior Test</title>
+</head>
+<body>
+    <h1>Testing Spring Security CSRF Defaults</h1>
+    
+    <h2>Test 1: Form without CSRF token</h2>
+    <form action="/test-endpoint" method="POST">
+        <input name="message" value="Hello without CSRF token">
+        <button type="submit">Submit (should this work?)</button>
+    </form>
+    
+    <h2>Test 2: Check what cookies we get</h2>
+    <script>
+        console.log("All cookies:", document.cookie);
+        
+        // Try to fetch user info to see session behavior
+        fetch('/api/user')
+            .then(response => {
+                console.log("API response status:", response.status);
+                if (response.ok) {
+                    return response.json();
+                } else {
+                    throw new Error(`HTTP ${response.status}`);
+                }
+            })
+            .then(data => {
+                console.log("User data:", data);
+                document.getElementById('user-info').textContent = JSON.stringify(data, null, 2);
+            })
+            .catch(error => {
+                console.log("API error:", error);
+                document.getElementById('user-info').textContent = `Error: ${error.message}`;
+            });
+    </script>
+    
+    <h2>Current User Info:</h2>
+    <pre id="user-info">Loading...</pre>
+    
+    <h2>Expected Behavior Questions:</h2>
+    <ul>
+        <li>Does the form submission get blocked by CSRF protection?</li>
+        <li>What session cookies do we get by default?</li>
+        <li>Is CSRF enabled for the main chain by default?</li>
+        <li>What happens to WebSocket requests (no explicit CSRF config)?</li>
+    </ul>
+</body>
+</html> 

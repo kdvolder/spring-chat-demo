@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Same-Origin vs Cross-Origin WebSocket Test</title>
+</head>
+<body>
+    <h1>Modern Browser WebSocket Origin Policy Test</h1>
+    
+    <div id="results">
+        <h2>Test Results:</h2>
+        <div id="same-origin-result">Same-Origin Test: <span>Running...</span></div>
+        <div id="cross-origin-result">Cross-Origin Test: <span>Running...</span></div>
+        <div id="browser-info">Browser: <span id="browser-details"></span></div>
+    </div>
+
+    <script>
+        // Display browser info
+        document.getElementById('browser-details').textContent = navigator.userAgent;
+        
+        console.log("🔍 Testing WebSocket behavior in modern browsers");
+        console.log("Current origin:", window.location.origin);
+        
+        // Test 1: Same-origin WebSocket (should work)
+        console.log("📡 Test 1: Same-origin WebSocket connection");
+        try {
+            const sameOriginSocket = new SockJS('/ws');
+            
+            sameOriginSocket.onopen = function() {
+                console.log("✅ Same-origin WebSocket connected");
+                document.getElementById('same-origin-result').innerHTML = 
+                    `Same-Origin Test: <span style="color: green;">CONNECTED - Normal behavior</span>`;
+                sameOriginSocket.close();
+            };
+            
+            sameOriginSocket.onerror = function(error) {
+                console.log("❌ Same-origin WebSocket failed:", error);
+                document.getElementById('same-origin-result').innerHTML = 
+                    `Same-Origin Test: <span style="color: red;">FAILED - ${error.message || 'Unknown error'}</span>`;
+            };
+            
+        } catch (error) {
+            console.log("❌ Same-origin WebSocket error:", error);
+            document.getElementById('same-origin-result').innerHTML = 
+                `Same-Origin Test: <span style="color: red;">ERROR - ${error.message}</span>`;
+        }
+
+        // Test 2: Cross-origin WebSocket (to a different port)
+        console.log("🌐 Test 2: Cross-origin WebSocket connection");
+        setTimeout(() => {
+            try {
+                // Try to connect to a different port (simulating cross-origin)
+                const crossOriginSocket = new SockJS('http://localhost:8081/ws');
+                
+                crossOriginSocket.onopen = function() {
+                    console.log("✅ Cross-origin WebSocket connected - SOP bypassed!");
+                    document.getElementById('cross-origin-result').innerHTML = 
+                        `Cross-Origin Test: <span style="color: red;">CONNECTED - Same Origin Policy bypassed!</span>`;
+                    crossOriginSocket.close();
+                };
+                
+                crossOriginSocket.onerror = function(error) {
+                    console.log("❌ Cross-origin WebSocket blocked:", error);
+                    document.getElementById('cross-origin-result').innerHTML = 
+                        `Cross-Origin Test: <span style="color: green;">BLOCKED - Modern browser security</span>`;
+                };
+                
+                crossOriginSocket.onclose = function(event) {
+                    console.log("Cross-origin WebSocket closed:", event.code, event.reason);
+                    if (event.code === 1006) {
+                        document.getElementById('cross-origin-result').innerHTML = 
+                            `Cross-Origin Test: <span style="color: green;">BLOCKED - Connection refused (${event.code})</span>`;
+                    }
+                };
+                
+            } catch (error) {
+                console.log("❌ Cross-origin WebSocket error:", error);
+                document.getElementById('cross-origin-result').innerHTML = 
+                    `Cross-Origin Test: <span style="color: green;">BLOCKED - ${error.message}</span>`;
+            }
+        }, 2000);
+    </script>
+
+    <div style="margin-top: 20px; padding: 10px; background: #f0f0f0;">
+        <h3>Hypothesis: Modern Browser Evolution</h3>
+        <p>🕐 <strong>Spring Security 5.8 Era</strong>: WebSocket/SockJS may have bypassed Same Origin Policy</p>
+        <p>🕐 <strong>Modern Browsers</strong>: Stricter security policies for cross-origin WebSocket connections</p>
+        <p>🔍 <strong>Test Result</strong>: If both same-origin works and cross-origin fails, then modern browsers 
+        have evolved beyond the old Spring Security assumptions.</p>
+        
+        <h4>Key Insights:</h4>
+        <ul>
+            <li>Browser security policies evolve faster than framework documentation</li>
+            <li>WebSocket CSRF protection may be less critical now due to stricter browser policies</li>
+            <li>The Spring 5.8→6.0 migration concerns might affect fewer applications than originally expected</li>
+        </ul>
+    </div>
+
+    <!-- Include SockJS for testing -->
+    <script src="https://cdn.jsdelivr.net/npm/sockjs-client@1/dist/sockjs.min.js"></script>
+</body>
+</html> 

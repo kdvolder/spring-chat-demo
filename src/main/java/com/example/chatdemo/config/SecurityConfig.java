@@ -14,7 +14,6 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.provisioning.InMemoryUserDetailsManager;
 import org.springframework.security.web.SecurityFilterChain;
-
 @Configuration
 @EnableWebSecurity
 public class SecurityConfig {
@@ -77,7 +76,8 @@ public class SecurityConfig {
             // No .antMatcher() - handles all remaining requests
             .authorizeHttpRequests(auth -> auth
                 .antMatchers("/", "/error").authenticated()  // Main app pages require auth
-                .anyRequest().denyAll()  // Everything else is public
+                .antMatchers("/test-csrf.html", "/test-endpoint", "/csrf-info").authenticated()  // Test endpoints
+                .anyRequest().denyAll()  // Everything else is denied
             )
             .formLogin(Customizer.withDefaults())
             .build();

@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Same Origin Policy Test: HTTP vs WebSocket/SockJS</title>
+</head>
+<body>
+    <h1>Same Origin Policy Comparison</h1>
+    
+    <div id="results">
+        <h2>Test Results:</h2>
+        <div id="http-result">HTTP Test: <span>Running...</span></div>
+        <div id="websocket-result">WebSocket Test: <span>Running...</span></div>
+        <div id="sockjs-result">SockJS Test: <span>Running...</span></div>
+    </div>
+
+    <script>
+        console.log("🔍 Testing Same Origin Policy behavior");
+        
+        // Test 1: HTTP Request (should be blocked by Same Origin Policy)
+        console.log("📡 Test 1: HTTP cross-origin request");
+        fetch('http://localhost:8080/api/user')
+            .then(response => {
+                console.log("✅ HTTP request succeeded (unexpected!)", response.status);
+                document.getElementById('http-result').innerHTML = 
+                    `HTTP Test: <span style="color: red;">SUCCEEDED (${response.status}) - Same Origin Policy NOT enforced?</span>`;
+            })
+            .catch(error => {
+                console.log("❌ HTTP request blocked:", error.message);
+                document.getElementById('http-result').innerHTML = 
+                    `HTTP Test: <span style="color: green;">BLOCKED - ${error.message}</span>`;
+            });
+
+        // Test 2: Raw WebSocket (should NOT be blocked by Same Origin Policy)
+        console.log("🔌 Test 2: Raw WebSocket cross-origin connection");
+        try {
+            const ws = new WebSocket('ws://localhost:8080/ws');
+            
+            ws.onopen = function(event) {
+                console.log("✅ Raw WebSocket connection opened");
+                document.getElementById('websocket-result').innerHTML = 
+                    `WebSocket Test: <span style="color: red;">CONNECTED - Same Origin Policy bypassed!</span>`;
+                ws.close();
+            };
+            
+            ws.onerror = function(error) {
+                console.log("❌ Raw WebSocket connection failed:", error);
+                document.getElementById('websocket-result').innerHTML = 
+                    `WebSocket Test: <span style="color: green;">FAILED - ${error.message || 'Connection blocked'}</span>`;
+            };
+            
+            ws.onclose = function(event) {
+                console.log("WebSocket closed:", event.code, event.reason);
+                if (event.code === 1006) {
+                    document.getElementById('websocket-result').innerHTML = 
+                        `WebSocket Test: <span style="color: green;">FAILED - Connection blocked (1006)</span>`;
+                }
+            };
+            
+        } catch (error) {
+            console.log("❌ Raw WebSocket error:", error);
+            document.getElementById('websocket-result').innerHTML = 
+                `WebSocket Test: <span style="color: green;">FAILED - ${error.message}</span>`;
+        }
+
+        // Test 3: SockJS (should also bypass Same Origin Policy)
+        console.log("🧦 Test 3: SockJS cross-origin connection");
+        setTimeout(() => {
+            try {
+                const sockjs = new SockJS('http://localhost:8080/ws');
+                
+                sockjs.onopen = function() {
+                    console.log("✅ SockJS connection opened");
+                    document.getElementById('sockjs-result').innerHTML = 
+                        `SockJS Test: <span style="color: red;">CONNECTED - Same Origin Policy bypassed!</span>`;
+                    sockjs.close();
+                };
+                
+                sockjs.onerror = function(error) {
+                    console.log("❌ SockJS connection failed:", error);
+                    document.getElementById('sockjs-result').innerHTML = 
+                        `SockJS Test: <span style="color: green;">FAILED - Connection blocked</span>`;
+                };
+                
+                sockjs.onclose = function(event) {
+                    console.log("SockJS closed:", event.code, event.reason);
+                    if (event.code === 2000) {
+                        document.getElementById('sockjs-result').innerHTML = 
+                            `SockJS Test: <span style="color: green;">FAILED - Authentication required</span>`;
+                    }
+                };
+                
+            } catch (error) {
+                console.log("❌ SockJS error:", error);
+                document.getElementById('sockjs-result').innerHTML = 
+                    `SockJS Test: <span style="color: green;">FAILED - ${error.message}</span>`;
+            }
+        }, 1000);
+    </script>
+
+    <div style="margin-top: 20px; padding: 10px; background: #f0f0f0;">
+        <h3>Expected Results:</h3>
+        <ul>
+            <li><strong>HTTP</strong>: Should be blocked by Same Origin Policy</li>
+            <li><strong>WebSocket</strong>: Should bypass Same Origin Policy but fail on authentication</li>
+            <li><strong>SockJS</strong>: Should bypass Same Origin Policy but fail on authentication</li>
+        </ul>
+        <p><strong>Key Insight</strong>: WebSocket/SockJS connections are NOT protected by Same Origin Policy, 
+        they rely on server-side authentication and session management for security.</p>
+    </div>
+
+    <!-- Include SockJS for testing -->
+    <script src="https://cdn.jsdelivr.net/npm/sockjs-client@1/dist/sockjs.min.js"></script>
+</body>
+</html> 
