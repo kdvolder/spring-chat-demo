@@ -76,7 +76,8 @@ public class SecurityConfig {
             // No .antMatcher() - handles all remaining requests
             .authorizeHttpRequests(auth -> auth
                 .antMatchers("/", "/error").authenticated()  // Main app pages require auth
-                .antMatchers("/test-csrf.html", "/test-endpoint", "/csrf-info").authenticated()  // Test endpoints
+                .antMatchers("/test/**").permitAll()  // Security test pages folder - public access for vulnerability testing
+                .antMatchers("/test-endpoint", "/csrf-info").authenticated()  // Test endpoints
                 .anyRequest().denyAll()  // Everything else is denied
             )
             .formLogin(Customizer.withDefaults())
