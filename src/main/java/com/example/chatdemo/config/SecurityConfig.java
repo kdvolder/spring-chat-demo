@@ -44,7 +44,7 @@ public class SecurityConfig {
     @Order(1)  // Check assets first
     public SecurityFilterChain assetsChain(HttpSecurity http) throws Exception {
         return http
-            .antMatcher("/assets/**")  // All static assets
+            .securityMatcher("/assets/**")  // All static assets
             .authorizeHttpRequests(auth -> auth.anyRequest().permitAll())
             .build();
     }
@@ -53,7 +53,7 @@ public class SecurityConfig {
     @Order(2)  // Check WebSocket second
     public SecurityFilterChain webSocketChain(HttpSecurity http) throws Exception {
         return http
-            .antMatcher("/ws/**")
+            .securityMatcher("/ws/**")
             .authorizeHttpRequests(auth -> auth.anyRequest().authenticated())
             .sessionManagement(session -> session.sessionCreationPolicy(org.springframework.security.config.http.SessionCreationPolicy.IF_REQUIRED))
             .build();
@@ -62,7 +62,8 @@ public class SecurityConfig {
     @Bean
     @Order(3)
     public SecurityFilterChain apiChain(HttpSecurity http) throws Exception {
-        return http.antMatcher("/api/**")
+        return http
+            .securityMatcher("/api/**")
             .httpBasic(Customizer.withDefaults())
             .authorizeHttpRequests(auth -> auth.anyRequest().authenticated())
             .csrf(csrf -> csrf.disable())
@@ -73,11 +74,11 @@ public class SecurityConfig {
     @Order(4)  // Handle everything else - AUTH REQUIRED FOR API AND MAIN PAGES
     public SecurityFilterChain mainAppChain(HttpSecurity http) throws Exception {
         return http
-            // No .antMatcher() - handles all remaining requests
+            // No securityMatcher() - handles all remaining requests
             .authorizeHttpRequests(auth -> auth
-                .antMatchers("/", "/error").authenticated()  // Main app pages require auth
-                .antMatchers("/test/**").permitAll()  // Security test pages folder - public access for vulnerability testing
-                .antMatchers("/test-endpoint", "/csrf-info").authenticated()  // Test endpoints
+                .requestMatchers("/", "/index.html", "/error").authenticated()  // Main app pages require auth
+                .requestMatchers("/test/**").permitAll()  // Security test pages folder - public access for vulnerability testing
+                .requestMatchers("/test-endpoint", "/csrf-info").authenticated()  // Test endpoints
                 .anyRequest().denyAll()  // Everything else is denied
             )
             .formLogin(Customizer.withDefaults())

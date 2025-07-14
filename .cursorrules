@@ -1,0 +1,115 @@
+# PINNED MEMORIES (MOST IMPORTANT)
+
+---
+# AI Memory Creation Best Practices
+
+## When to Create Memories (Behavioral Triggers)
+
+### High Priority Signals
+- **User Preferences/Corrections**: "I prefer X", "Actually, that's not right", working style observations
+- **Technical Breakthroughs**: Solved tricky problems, elegant solutions, important constraints discovered, failed approaches with reasons
+
+### Medium Priority 
+- **Project Knowledge**: Architecture decisions, key codebase insights, successful debugging approaches
+- **Meta-Knowledge**: Memory system insights, effective problem-solving patterns
+
+## Quality Guidelines
+
+### Summary Writing: Think "Abstract" Not "Title"
+❌ Bad: "Fixed authentication bug"  
+✅ Good: "Replaced hardcoded API keys with environment variables after discovering 401 errors in production due to Docker config loading issues"
+
+Write enough context that future-you can decide if you need full details.
+
+### Details: Tell Complete Story
+Include: What was the problem? What did you try? What worked/didn't work? What was the final solution? Why does this matter?
+
+### Write Self-Contained Content
+The details field should be readable by itself. Title and summary are metadata for reference - the content should include its own title and context so it makes sense when read directly.
+
+**Why this matters**: Important memories may be auto-included in full in .cursorrules. They need to be self-contained and readable without additional context.
+
+**Example**: Start with `# Memory Title` and structure it as a complete document, not just notes that depend on the metadata.
+
+### Topics: Tag for Future Findability
+Use descriptive tags you'd naturally search for: domain areas, problem types, meta categories.
+
+## Decision Frameworks
+
+### The "Future Context" Test
+- Would this help me in 2 weeks when I've forgotten the details?
+- Is there enough context to understand the situation?
+- Would someone else working on similar problems find this useful?
+
+### The "So What?" Test  
+If you can't answer "Why would future-me care about this?", don't store it.
+
+## Red Flags (When NOT to Create)
+- Pure reference information (easily looked up)
+- One-off facts (unlikely to be relevant again)  
+- Incomplete understanding (wait until you really get it)
+- Duplicate information (already captured elsewhere)
+- Test/temporary content (treat memory store seriously)
+
+## Success Patterns
+- Problem-Solution Pairs: Capture both what was broken and how you fixed it
+- Decision Records: Options considered, trade-offs, assumptions that might invalidate later
+- Learning Moments: Previous misunderstanding → new insight → implications
+
+## Goal
+Quality over quantity. Capture insights that make you more effective over time, not everything.
+
+# MEMORY BRIEF
+
+This contains important context about the user and project. Each entry is:
+- [memory_id] [topics] Summary description (importance_score)
+
+Reference these when relevant. Use memory_details(id) for full information.
+
+- [mem_dc6f15dc-0961-4e65-a567-e5baa3cb68d2] [spring-security, websocket, csrf, cookies, migration, spring-boot-3, spring-security-6, same-origin-policy, cross-origin, security-testing, regression-testing, security-configuration] Spring Security WebSocket CSRF Cookie Issue - Important test case for Spring 5 to 6 migration (34.0)
+- [mem_700f878c-e8d7-4546-8af5-1f879f60753f] [spring-security, migration, configuration-style, websecurityconfigureradapter, securityfilterchain, openrewrite, security-config, spring-boot-3, spring-security-6, migration-recipes, breaking-changes, best-practices] Spring Security 5 to 6 Configuration Style Migration - Transitioning from WebSecurityConfigurerAdapter to SecurityFilterChain for OpenRewrite recipes (33.0)
+- [mem_4550822e-cdef-4cbc-8b73-0a4af162b956] [spring-security, migration, pattern-matching, antMatchers, requestMatchers, openrewrite, security-config, spring-mvc, servlet-paths, pattern-transformation, migration-recipes, spring-boot-3, spring-security-6] Spring Security 5 to 6 Pattern Matching Migration Subtleties - Important considerations for antMatchers to requestMatchers migration in OpenRewrite recipes (31.9)
+- [mem_35411815-3768-4c3a-9d7e-5227515e4826] [TODO, mcp-memory-tool, design-issue, user-experience, memory-read, api-design] Improve memory_read to show complete memory state - content and metadata together (30.9)
+- [mem_8eaa9c7a-aac5-4820-ba2e-3de7e80a8825] [mcp-memory-tool, enhancement, configuration, command-line-args, memory-brief-limit, customization] Added configurable memory brief limit via --memory-brief-limit command line argument, replacing hardcoded 15 memory limit (29.9)
+- [mem_e8e84e94-05b3-4c1c-876e-83938e9b5951] [setup, configuration, cline, vscode, plugin, openai-compatible, api-endpoint, broadcom, documentation, tutorial, troubleshooting, installation, private-ai, on-prem, mistral, llama, vpn, network-setup] Complete Cline VSCode plugin setup instructions for Broadcom's OpenAI-compatible endpoint, including installation, configuration, and troubleshooting steps (28.9)
+- [mem_43772560-dfe5-4903-8859-1d9373b7de76] [TODO, mcp-memory-tool, cline, open-source, memory-system, integration, automatic-archiving, chat-history, exploration, opportunity, technical-implementation] Explore Cline's open-source potential for automatic memory system integration - could enable direct chat history archiving without requiring AI to "remember to remember" (27.9)
+- [mem_d1c81d05-43c9-4b62-82f0-7777ad07cf5a] [TODO, mcp-memory-tool, enhancement, tagging, project-scoping, structured-tags, search, organization] Enhance tagging system with structured tags/roles for better project scoping and search (25.9)
+- [mem_a2c6264c-605a-4e6d-8e90-eb22940aa715] [mcp-memory-tool, architecture, project-scoping, global-storage, per-project-relevance, context-switching, design-solution] Global memory content with per-project importance scores and pinning - elegant solution to context switching problem (24.9)
+- [mem_10793725-7acd-45c5-9775-f9486e886e95] [TODO, mcp-memory-tool, feature, importance-scoring, auto-boost, memory-read, usage-tracking] Implement automatic importance boosting when memories are read via mcp_memory_read tool (23.9)
+- [mem_429dd62c-6d8b-4bcf-b7a3-3de1b77aaf62] [TODO, mcp-memory-tool, exploration, project-scoping, architecture] Explore/brainstorm project-scoped memories concept (22.9)
+- [mem_ad3fef9e-5b70-4d78-b034-cb88131b7271] [TODO, mcp-memory-tool, feature, budget, status] Show current pin count/budget status in pin operations or list commands (21.9)
+- [mem_249ff18a-57b9-4e45-8863-e00dcc5bcc6d] [TODO, mcp-memory-tool, feature, budget, user-experience] Define behavior when pin budget is exceeded - error, auto-unpin, or user choice (20.9)
+- [mem_ea8ccca6-3844-415b-ba07-6aaaf4e11af3] [TODO, mcp-memory-tool, feature, limits, budget] Implement budget/limit for pinned memories to prevent .cursorrules bloat (19.9)
+- [mem_83e7acfe-4796-4d57-986c-0345360a604a] [TODO, mcp-memory-tool, feature, browsing] Implement memory list tool for browsing available memories (18.9)
+- [mem_ca33e635-9b00-4202-9cb1-18a4528934c8] [TODO, mcp-memory-tool, feature, search] Implement memory search tool for finding memories by topics/keywords (17.9)
+- [mem_3975f0ff-d4f8-4719-abd5-9142b637382e] [TODO, mcp-memory-tool, high-priority, feature] Implement memory update tool for editing existing memory content (16.9)
+- [mem_322b406d-30a1-46f0-b02f-cda9b798158d] [TODO, mcp-memory-tool, medium-priority, discoverability] Add comprehensive topics index to .cursorrules memory brief for better discoverability (15.9)
+- [mem_678a152d-2412-4fed-8f56-b9b168945aff] [TODO, mcp-memory-tool, feature, usability, auto-formatting] Enhance memory tool to auto-format simple content into self-contained structure (14.9)
+- [mem_011dcd0c-0ff0-4284-bc6c-0388acc6801f] [TODO, mcp-memory-tool, medium-priority, cleanup] Remove importance scores from .cursorrules brief display (13.9)
+- [mem_43a4c416-941d-4a67-96da-cd00a769b56a] [TODO, mcp-memory-tool, high-priority, testing, completed] Fix failing pin tests to expect auto-inclusion format instead of old emoji format (12.9)
+- [mem_f1ba8dc6-2609-4488-9c4f-90d7940b026d] [project-summary, auto-inclusion, behavioral-change, experiment-results, memory-system, session-continuity, hobby-project] Auto-inclusion experiment results and current project state - significant behavioral change findings and next priorities (11.9)
+- [mem_cb293360-9042-4f1f-856a-58fd323b307c] [test, server-restart, auto-inclusion] Test auto-inclusion after server restart (10.9)
+- [mem_b351b5c7-35bd-4f65-bae3-c1f36d2d54c8] [memory-system, pinned-memories, budget-design, user-experience, architecture, limits, enforcement, design-decisions] Pinned Memory Budget Design - limits, enforcement, and user experience considerations for auto-included memories (9.9)
+- [mem_283dfa42-b308-44e9-b0f0-d6441433af4e] [working-style, tdd, testing, user-preferences, development-process, test-first] Kris prefers Test-Driven Development with test-first discipline to guarantee coverage and avoid unnecessary implementation (8.0)
+- [mem_493b3ae0-3da0-478d-ad56-f71cc4bd7d6e] [memory-system, startup-bug-fix, user-experience, automatic-injection] Successfully implemented startup brief generation to fix the "injection loophole" where stale .cursorrules files weren't updated until new memories were created (7.0)
+- [mem_32cad2d9-a673-4fff-b1eb-57066debd542] [memory-system, startup-bug-fix, user-experience, automatic-injection] Successfully implemented startup brief generation to fix the "injection loophole" where stale .cursorrules files weren't updated until new memories were created (6.0)
+- [mem_3eaeddc4-0c90-4407-bcc0-4260bbb050c1] [debugging, mcp-roots, zod-schemas, protocol-fix] Testing roots request with correct ListRootsResultSchema to see if we can finally get project root discovery working (5.0)
+- [mem_bed2af55-7b3f-4914-9936-577d89988f3d] [debugging, mcp-roots, schema-validation, protocol-investigation] Testing roots request without schema validation to understand the exact error (4.0)
+- [mem_f2a972a4-698e-4b57-93fb-88e89ff6173e] [debugging, mcp-roots, project-discovery, troubleshooting] Testing MCP roots debugging to understand why project root discovery is failing (3.0)
+- [mem_02553a7c-786e-4a8e-8000-ccebd5db2c4c] [terminology, migration, memory-system, api-improvement, development-process] Successfully migrated memory system from "tags" to "topics" terminology (1.9)
+- [mem_42dca2e2-bd4e-46f1-8de9-038f1f1163be] [meta, memory-creation, triggers, user-preferences] Create memories when user expresses preferences, corrections, or working style observations (0.9)
+- [mem_ab827075-a153-4200-946b-09d7fba33197] [debug, testing, memory-system] Test memory to check brief generation (0.9)
+- [mem_d65c3d5a-0fb6-4817-be9b-22087ccec94a] [meta, memory-creation, technical, project-context] Capture significant technical decisions, architectural choices, and project discoveries (0.9)
+- [mem_f1a2b3c4-d5e6-47f8-89ab-cdef01234567] [working-style, conversation-pacing, feedback-loops] Kris dislikes long responses and prefers smaller chunks with time to process and respond (0.9)
+- [mem_2185442d-60fc-4026-ad89-ae80ed7b50b4] [meta, memory-creation, quality, importance-scoring] Good memories are specific, actionable, and properly tagged with appropriate importance scores (0.8)
+- [mem_0eae31e6-fc7c-42b4-871f-2a6240d914cd] [mcp, cursor, performance, caching, tool-discovery, technical-insight] MCP tool visibility requires cache clearing in Cursor, causing temporary slowdown (0.8)
+- [mem_4d4fcc14-0484-40be-a37b-dfd20ebfd31c] [design-decision, numeric-importance, algorithmic-enhancement, future-ready] Numeric importance scale (0-1) enables algorithmic memory management (0.8)
+- [mem_5c621023-5e92-41fc-9f9e-fe8596a76ab7] [problem-solving, mcp-protocol, project-architecture, path-discovery, technical-breakthrough] Solved MCP server project path discovery using client roots capability and initialization handshake (0.8)
+- [mem_a9b8c7d6-e5f4-4321-8abc-def012345678] [design-insight, contextual-memory, usage-tracking, smart-idea] Kris suggested tracking memory usage patterns by project for contextual activation (0.8)
+- [mem_c136b0bc-aedf-43e2-a65d-01ffccacabd8] [debug, final-test, compiled] Final path debugging test (0.8)
+- [mem_c8d7e6f5-a4b3-4567-89cd-ef0123456789] [design-insight, contextual-memory, usage-tracking, smart-idea] Kris suggested tracking memory usage patterns by project for contextual activation (0.8)
+- [mem_1244efb5-b6cf-4763-8785-ee5de37be036] [debug, path-testing, mcp-server] Path debugging test (0.7)
+- [mem_c96085ee-da51-4218-94b9-f25665f2375d] [test, implementation, path-problem] Testing the cleaned up implementation (0.6)
+- [mem_bbaa4913-bb3c-44ff-8bd5-b35ba685408c] [test, uuid, api-update] Testing the new memory_create function with UUID-based IDs (0.5)
+- [mem_c20fcdaa-9466-4191-88e4-8a293d4eb3b2] [debug, cursorrules, path-finding] Debug test memory (0.5)
+- [mem_f17d98bc-5dfa-4b72-a98c-791ac8d84266] [test, uuid, api-update] Testing the new memory_create function with UUID-based IDs (0.5)
