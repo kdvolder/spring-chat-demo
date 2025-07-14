@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Legitimate Cross-Origin WebSocket Test</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/sockjs-client/1.6.1/sockjs.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/stomp.js/2.3.3/stomp.min.js"></script>
+</head>
+<body>
+    <h1>Cross-Origin WebSocket Connection Test</h1>
+    <p>This page demonstrates a legitimate cross-origin WebSocket connection.</p>
+    
+    <div id="status">Status: <span id="connection-status">Not connected</span></div>
+    <div id="messages"></div>
+    
+    <script>
+        console.log('🌐 Starting cross-origin WebSocket test...');
+        
+        // Hard-coded credentials for demo (alice:password)
+        const username = 'alice';
+        const password = 'password';
+        const credentials = btoa(username + ':' + password);  // Base64 encode
+        
+        console.log('Using credentials for user:', username);
+        
+        // Try to connect to the WebSocket server
+        const serverUrl = 'http://localhost:8080/ws';
+        console.log('Attempting connection to:', serverUrl);
+        
+        try {
+            // SockJS with Basic Auth headers
+            const socket = new SockJS(serverUrl, null, {
+                headers: {
+                    'Authorization': 'Basic ' + credentials
+                }
+            });
+            const stompClient = Stomp.over(socket);
+            
+            stompClient.connect({
+                // STOMP headers - also include auth here for good measure
+                'Authorization': 'Basic ' + credentials
+            }, 
+                function(frame) {
+                    console.log('✅ Connected:', frame);
+                    document.getElementById('connection-status').textContent = 'Connected!';
+                    
+                    // Subscribe to chat messages
+                    stompClient.subscribe('/topic/public', function(message) {
+                        console.log('📨 Received message:', message.body);
+                        const parsedMessage = JSON.parse(message.body);
+                        const messagesDiv = document.getElementById('messages');
+                        messagesDiv.innerHTML += '<div>📨 <strong>' + parsedMessage.sender + ':</strong> ' + parsedMessage.content + '</div>';
+                    });
+                },
+                function(error) {
+                    console.log('❌ Connection failed:', error);
+                    document.getElementById('connection-status').textContent = 'Failed: ' + error;
+                }
+            );
+            
+        } catch (error) {
+            console.log('❌ Error:', error);
+            document.getElementById('connection-status').textContent = 'Error: ' + error.message;
+        }
+    </script>
+</body>
+</html> 
