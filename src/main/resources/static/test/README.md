@@ -7,7 +7,7 @@ This directory contains a comprehensive set of security tests for the Spring Cha
 ### 1. CORS and Origin Policy Tests
 These tests examine how browsers and the server handle cross-origin requests:
 
-- `modern-browser-sop.html`: Tests how modern browsers enforce Same-Origin Policy (SOP)
+- `modern-browser-same-origin-policy.html`: Tests how modern browsers enforce Same-Origin Policy
   - Validates same-origin vs cross-origin WebSocket behavior
   - Documents evolution of browser security policies
   - Demonstrates why some Spring Security 5.8 assumptions may no longer apply
@@ -50,7 +50,7 @@ These tests validate specific security mechanisms:
 ## Test Categories and Security Layers
 
 ### Browser Security
-- Same-Origin Policy (SOP)
+- Same-Origin Policy enforcement
 - Cross-Origin Resource Sharing (CORS)
 - Modern browser security evolution
 
