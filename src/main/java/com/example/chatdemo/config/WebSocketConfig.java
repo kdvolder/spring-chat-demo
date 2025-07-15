@@ -26,6 +26,8 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
     public void registerStompEndpoints(StompEndpointRegistry registry) {
         // Register STOMP endpoint that clients will connect to
         registry.addEndpoint("/ws")
-                .withSockJS();  // Enable SockJS fallback for older browsers
+        .setAllowedOrigins("http://localhost:8080")  // Be specific about allowed origin
+        .withSockJS()  // Enable SockJS fallback for older browsers
+        .setSessionCookieNeeded(true);
     }
 } 

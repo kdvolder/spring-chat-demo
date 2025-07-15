@@ -32,7 +32,7 @@ public class WebSocketSecurityConfig extends AbstractSecurityWebSocketMessageBro
                 .denyAll();
     }
 
-        @Override
+    @Override
     protected boolean sameOriginDisabled() {
         // Disable CSRF protection for WebSocket messages to prevent NPE
         // The HttpSessionCsrfTokenRepository tries to access null session in WebSocket context

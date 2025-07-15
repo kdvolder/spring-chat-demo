@@ -11,17 +11,6 @@ import org.springframework.web.socket.config.annotation.WebSocketMessageBrokerCo
 @EnableWebSocketMessageBroker
 public class SpringChatDemoApplication {
 
-    @Bean
-    public WebSocketMessageBrokerConfigurer webSocketMessageBrokerConfigurer() {
-        return new WebSocketMessageBrokerConfigurer() {
-            @Override
-            public void configureMessageBroker(MessageBrokerRegistry registry) {
-                registry.enableSimpleBroker("/topic");
-                registry.setApplicationDestinationPrefixes("/app");
-            }
-        };
-    }
-
     public static void main(String[] args) {
         SpringApplication.run(SpringChatDemoApplication.class, args);
     }

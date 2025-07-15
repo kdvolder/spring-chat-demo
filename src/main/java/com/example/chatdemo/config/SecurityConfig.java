@@ -55,7 +55,7 @@ public class SecurityConfig {
         return http
             .antMatcher("/ws/**")
             .authorizeHttpRequests(auth -> auth.anyRequest().authenticated())
-            .sessionManagement(session -> session.sessionCreationPolicy(org.springframework.security.config.http.SessionCreationPolicy.IF_REQUIRED))
+            .sessionManagement(session -> session.sessionCreationPolicy(org.springframework.security.config.http.SessionCreationPolicy.ALWAYS))
             .build();
     }
 
