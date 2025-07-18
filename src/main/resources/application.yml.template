@@ -1,0 +1,11 @@
+spring:
+  security:
+    saml2:
+      relyingparty:
+        registration:
+          okta:
+            assertingparty:
+              # Replace with your Okta SAML metadata URL
+              # Get this from: Okta Admin Console → Applications → Your SAML App → Sign On tab
+              # Should look like: https://dev-xxxxxx.okta.com/app/xxxxxxxxx/sso/saml/metadata
+              metadata-uri: YOUR_OKTA_METADATA_URL_HERE 
