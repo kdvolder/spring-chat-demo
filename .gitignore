@@ -37,4 +37,7 @@ build/
 Thumbs.db
 
 # Logs
-*.log 
+*.log
+
+# Cursor AI memory
+.cursorrules 
