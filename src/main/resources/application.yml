@@ -1,0 +1,9 @@
+spring:
+  security:
+    saml2:
+      relyingparty:
+        registration:
+          okta:
+            assertingparty:
+              # Using Okta developer account for SAML testing
+              metadata-uri: https://integrator-8120019.okta.com/app/exktddr622Lpnb2IG697/sso/saml/metadata 

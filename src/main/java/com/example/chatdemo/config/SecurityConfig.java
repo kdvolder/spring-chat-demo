@@ -14,6 +14,7 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.provisioning.InMemoryUserDetailsManager;
 import org.springframework.security.web.SecurityFilterChain;
+
 @Configuration
 @EnableWebSecurity
 public class SecurityConfig {
@@ -80,7 +81,11 @@ public class SecurityConfig {
                 .antMatchers("/test-endpoint", "/csrf-info").authenticated()  // Test endpoints
                 .anyRequest().denyAll()  // Everything else is denied
             )
+            // Enable both form login and SAML login - following Spring 5.8.16 patterns
             .formLogin(Customizer.withDefaults())
+            .saml2Login(Customizer.withDefaults())  // Add SAML 2.0 support
+            // Disable CSRF for SAML endpoints - required for SAML assertion consumer service
+            .csrf(csrf -> csrf.ignoringAntMatchers("/saml2/**"))
             .build();
     }
 
