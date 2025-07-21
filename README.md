@@ -99,6 +99,40 @@ spring:
 - **Disabled**: For SAML endpoints (`/saml2/**`) and API endpoints (`/api/**`)
 - **Reasoning**: SAML assertions are cryptographically signed; APIs use stateless auth
 
+### SAML Service Provider Metadata
+
+This application publishes **SAML metadata** that describes its configuration to Identity Providers. This metadata endpoint acts like a "configuration descriptor" that IdPs can read to automatically set up SAML integration.
+
+**Endpoint**: `/saml2/service-provider-metadata/{registrationId}`
+
+**Example for Okta registration**:
+```bash
+curl http://localhost:8080/saml2/service-provider-metadata/okta
+```
+
+**Response**:
+```xml
+<?xml version="1.0" encoding="UTF-8"?><md:EntityDescriptor xmlns:md="urn:oasis:names:tc:SAML:2.0:metadata" entityID="http://localhost:8080/saml2/service-provider-metadata/okta">
+    <md:SPSSODescriptor protocolSupportEnumeration="urn:oasis:names:tc:SAML:2.0:protocol">
+        <md:AssertionConsumerService Binding="urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST" Location="http://localhost:8080/login/saml2/sso/okta" index="1"/>
+    </md:SPSSODescriptor>
+</md:EntityDescriptor>
+```
+
+**Response includes**:
+- **Entity ID**: Unique identifier for this service provider
+- **Assertion Consumer Service (ACS) URL**: Where IdPs should send SAML responses
+- **Supported bindings**: HTTP-POST, HTTP-Redirect, etc.
+- **Protocol information**: SAML 2.0 capabilities
+
+**Use cases**:
+- **IdP auto-configuration**: Import metadata URL into Okta/Azure AD for automatic setup
+- **Integration documentation**: Share with partners for B2B SAML setup
+- **Configuration verification**: Validate current SAML settings
+- **Troubleshooting**: Confirm entity IDs and URLs match IdP configuration
+
+**Note**: In Spring Security 5.x, this endpoint requires manual configuration via `Saml2MetadataFilter`. Spring Security 6.x enables it automatically.
+
 ## Key Security Learnings
 
 - **HTTP status codes**: `401 Unauthorized` vs `403 Forbidden`
