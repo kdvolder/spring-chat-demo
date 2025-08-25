@@ -6,4 +6,15 @@ spring:
           okta:
             assertingparty:
               # Using Okta developer account for SAML testing
-              metadata-uri: https://integrator-8120019.okta.com/app/exktddr622Lpnb2IG697/sso/saml/metadata 
+              metadata-uri: https://integrator-8120019.okta.com/app/exktddr622Lpnb2IG697/sso/saml/metadata
+    # OAuth2 Client Configuration (for GitHub)
+    oauth2:
+      client:
+        registration:
+          github:
+            client-id: 249fca8113593832139f
+            client-secret: de1bf2a6fe7c2d3b9c7e9e5334ceece12ca8b730
+            # For authorization_code flow, these are typical defaults. Spring Boot can often infer these.
+            # authorization-grant-type: authorization_code
+            # redirect-uri: "{baseUrl}/login/oauth2/code/{registrationId}"
+            # scope: user,public_repo # Example scopes 

@@ -19,6 +19,8 @@ import org.springframework.security.saml2.provider.service.web.Saml2MetadataFilt
 import org.springframework.security.saml2.provider.service.metadata.OpenSamlMetadataResolver;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.saml2.provider.service.metadata.Saml2MetadataResolver;
+import org.springframework.security.oauth2.client.endpoint.OAuth2AccessTokenResponseClient;
+import org.springframework.security.oauth2.client.endpoint.OAuth2AuthorizationCodeGrantRequest;
 
 @Configuration
 @EnableWebSecurity
@@ -30,16 +32,16 @@ public class SecurityConfig {
     }
 
     @Bean
-    public UserDetailsService userDetailsService() {
-        UserDetails alice = User.withDefaultPasswordEncoder()
+    public UserDetailsService userDetailsService(PasswordEncoder passwordEncoder) {
+        UserDetails alice = User.builder()
                 .username("alice")
-                .password("password")
+                .password(passwordEncoder.encode("password"))
                 .roles("USER")
                 .build();
 
-        UserDetails bob = User.withDefaultPasswordEncoder()
+        UserDetails bob = User.builder()
                 .username("bob")
-                .password("password")
+                .password(passwordEncoder.encode("password"))
                 .roles("USER")
                 .build();
 
@@ -56,8 +58,8 @@ public class SecurityConfig {
     public Saml2MetadataFilter saml2MetadataFilter(
             RelyingPartyRegistrationRepository repository,
             Saml2MetadataResolver metadataResolver) {
-        
-        DefaultRelyingPartyRegistrationResolver relyingPartyRegistrationResolver =
+
+        var relyingPartyRegistrationResolver =
                 new DefaultRelyingPartyRegistrationResolver(repository);
         
         // Cast to RelyingPartyRegistrationResolver to resolve constructor ambiguity
@@ -97,7 +99,10 @@ public class SecurityConfig {
 
     @Bean
     @Order(5) // Handle everything else - AUTH REQUIRED FOR API AND MAIN PAGES
-    public SecurityFilterChain mainAppChain(HttpSecurity http, RelyingPartyRegistrationRepository repository) throws Exception {
+    public SecurityFilterChain mainAppChain(
+            HttpSecurity http, 
+            RelyingPartyRegistrationRepository repository,
+            OAuth2AccessTokenResponseClient<OAuth2AuthorizationCodeGrantRequest> authorizationCodeAccessTokenResponseClient) throws Exception {
         return http
             // No .antMatcher() - handles all remaining requests
             .authorizeHttpRequests(auth -> auth
@@ -105,11 +110,17 @@ public class SecurityConfig {
                 .antMatchers("/test/**").permitAll() // Security test pages folder - public access for vulnerability testing
                 .antMatchers("/test-endpoint", "/csrf-info").authenticated() // Test endpoints
                 .antMatchers("/saml2/metadata", "/saml2/metadata/**").permitAll() // SAML metadata should be public
+                .antMatchers("/favicon.ico", "/.well-known/**").permitAll() // Allow common browser requests
                 .anyRequest().denyAll() // Everything else is denied
             )
             // Enable both form login and SAML login - following Spring 5.8.16 patterns
             .formLogin(Customizer.withDefaults())
             .saml2Login(Customizer.withDefaults()) // Add SAML 2.0 support
+            .oauth2Login(oauth2 -> oauth2
+                .tokenEndpoint(token -> token
+                    .accessTokenResponseClient(authorizationCodeAccessTokenResponseClient)
+                )
+            ) // Use our custom token response client with deprecated converter
             // Add our metadata filter to the chain - following Spring Security 5.7 docs
             .addFilterBefore(saml2MetadataFilter(repository, saml2MetadataResolver()), org.springframework.security.saml2.provider.service.servlet.filter.Saml2WebSsoAuthenticationFilter.class)
             // Disable CSRF for SAML endpoints - required for SAML assertion consumer service
