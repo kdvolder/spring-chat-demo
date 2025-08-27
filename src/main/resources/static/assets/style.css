@@ -48,6 +48,21 @@ h1 {
     background-color: #f8f9fa;
 }
 
+/* Message container with avatar */
+.message-container {
+    display: flex;
+    align-items: center;
+}
+
+/* User avatar styles */
+.user-avatar {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    margin-right: 10px;
+    object-fit: cover;
+}
+
 #messageInput {
     width: 70%;
     padding: 10px;

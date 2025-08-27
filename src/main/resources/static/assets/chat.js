@@ -67,12 +67,37 @@ function showMessage(message) {
 }
 
 function displayMessageInUI(message, displayName) {
-    $('#messages').append(
-        $('<div>').append(
-            $('<strong>').text(displayName + ': '),
-            $('<span>').text(message.content)
-        )
+    // Create a message container
+    const messageContainer = $('<div>').addClass('message-container');
+    
+    // Fetch user avatar if we have a sender ID
+    if (message.senderId) {
+        fetch(`/api/users/${message.senderId}/public`)
+            .then(response => response.json())
+            .then(userInfo => {
+                // Add avatar if available
+                if (userInfo.avatarUrl) {
+                    const avatar = $('<img>')
+                        .attr('src', userInfo.avatarUrl)
+                        .addClass('user-avatar')
+                        .attr('title', displayName);
+                    
+                    messageContainer.prepend(avatar);
+                }
+            })
+            .catch(error => {
+                console.error('Error fetching user avatar:', error);
+            });
+    }
+    
+    // Add username and message content
+    messageContainer.append(
+        $('<strong>').text(displayName + ': '),
+        $('<span>').text(message.content)
     );
+    
+    // Add to messages container
+    $('#messages').append(messageContainer);
 }
 
 function sendMessage() {

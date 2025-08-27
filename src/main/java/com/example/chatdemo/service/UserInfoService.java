@@ -20,7 +20,7 @@ import org.springframework.stereotype.Service;
  */
 @Service
 public class UserInfoService {
-    // In-memory cache of user display names by secure ID
+    // In-memory cache of user info by secure ID
     // In a real application, this would be backed by a database
     private final Map<String, UserInfo> userCache = new ConcurrentHashMap<>();
     
@@ -50,7 +50,8 @@ public class UserInfoService {
         UserInfo userInfo = new UserInfo(
             secureId,
             extractDisplayName(authentication),
-            roles
+            roles,
+            extractAvatarUrl(authentication)
         );
         
         // Cache the user info for later lookup
@@ -90,7 +91,8 @@ public class UserInfoService {
     public record UserInfo(
         String id,                  // Secure, qualified ID (e.g., "oauth2:github:1002156")
         String displayName,         // Human-readable name (e.g., "Kris De Volder")
-        Collection<String> roles    // User's security roles/authorities
+        Collection<String> roles,   // User's security roles/authorities
+        String avatarUrl            // URL to user's profile picture (if available)
     ) {}
     
     /**
@@ -99,13 +101,18 @@ public class UserInfoService {
      */
     public record PublicUserInfo(
         String id,                  // Secure, qualified ID (e.g., "oauth2:github:1002156")
-        String displayName          // Human-readable name (e.g., "Kris De Volder")
+        String displayName,         // Human-readable name (e.g., "Kris De Volder")
+        String avatarUrl            // URL to user's profile picture (if available)
     ) {
         /**
          * Creates a public user info from a complete user info
          */
         public static PublicUserInfo fromUserInfo(UserInfo userInfo) {
-            return new PublicUserInfo(userInfo.id(), userInfo.displayName());
+            return new PublicUserInfo(
+                userInfo.id(),
+                userInfo.displayName(),
+                userInfo.avatarUrl()
+            );
         }
     }
     
@@ -155,5 +162,40 @@ public class UserInfoService {
         
         // Regular username/password (UserDetails)
         return authentication.getName();
+    }
+    
+    /**
+     * Extracts avatar URL for the authenticated user if available
+     */
+    private String extractAvatarUrl(Authentication authentication) {
+        // OAuth2 login (e.g., GitHub)
+        if (authentication instanceof OAuth2AuthenticationToken oauth2Auth) {
+            OAuth2User oauth2User = (OAuth2User) authentication.getPrincipal();
+            String provider = oauth2Auth.getAuthorizedClientRegistrationId();
+            
+            if ("github".equals(provider)) {
+                // GitHub provides avatar_url in user attributes
+                return oauth2User.getAttribute("avatar_url");
+            }
+            
+            // For other OAuth2 providers, look for common attribute names
+            String avatarUrl = oauth2User.getAttribute("picture"); // Google, Facebook
+            if (avatarUrl == null) {
+                avatarUrl = oauth2User.getAttribute("avatar"); // Some providers
+            }
+            return avatarUrl;
+        }
+        
+        // SAML login - try common attribute names
+        if (authentication.getPrincipal() instanceof Saml2AuthenticatedPrincipal samlUser) {
+            String avatarUrl = samlUser.getFirstAttribute("picture");
+            if (avatarUrl == null) {
+                avatarUrl = samlUser.getFirstAttribute("avatar");
+            }
+            return avatarUrl;
+        }
+        
+        // Default - no avatar URL available
+        return null;
     }
 }
