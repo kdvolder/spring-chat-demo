@@ -1,9 +1,13 @@
 package com.example.chatdemo.service;
 
 import java.util.Collection;
+import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AuthenticationCredentialsNotFoundException;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken;
@@ -23,6 +27,9 @@ public class UserInfoService {
     // In-memory cache of user info by secure ID
     // In a real application, this would be backed by a database
     private final Map<String, UserInfo> userCache = new ConcurrentHashMap<>();
+    
+    @Autowired
+    private List<HoverCardProvider> hoverCardProviders;
     
     /**
      * Creates or retrieves a standardized user info record with identity and display information.
@@ -86,6 +93,99 @@ public class UserInfoService {
     }
     
     /**
+     * Gets hover card information for a user by their secure ID.
+     * This is used to display additional information when hovering over a username in chat.
+     * 
+     * @param secureId The secure ID of the user to look up
+     * @return The hover card info, or null if not found
+     */
+    public UserHoverCardInfo getHoverCardInfoById(String secureId) {
+        System.out.println("🔍 Getting hover card for user ID: " + secureId);
+        System.out.println("🗄️ Current cache entries: " + userCache.keySet());
+        
+        UserInfo userInfo = userCache.get(secureId);
+        if (userInfo == null) {
+            System.out.println("❌ User not found in cache: " + secureId);
+            
+            // For demo purposes, create a fake user if not found
+            System.out.println("🆕 Creating demo user for: " + secureId);
+            userInfo = new UserInfo(
+                secureId,
+                "Demo User",
+                List.of("ROLE_USER"),
+                null
+            );
+            userCache.put(secureId, userInfo);
+        } else {
+            System.out.println("✅ User found in cache: " + userInfo.displayName());
+        }
+        
+        // Parse the user ID components
+        String providerType = "unknown";
+        String providerName = null;
+        String username = secureId;
+        
+        // Extract provider type and name from the ID
+        if (secureId.contains(":")) {
+            String[] parts = secureId.split(":");
+            providerType = parts[0];
+            
+            if (parts.length > 2) {
+                providerName = parts[1];
+                username = parts[2];
+            } else if (parts.length > 1) {
+                username = parts[1];
+            }
+        }
+        
+        System.out.println("🔍 Parsed user ID: type=" + providerType + 
+                          ", name=" + providerName + 
+                          ", username=" + username);
+        
+        // Create basic hover card info
+        Map<String, String> details = new HashMap<>();
+        
+        // Try to find a provider that can handle this user
+        boolean providerFound = false;
+        System.out.println("🔍 Looking for hover card providers for user: " + secureId);
+        System.out.println("   Provider type: " + providerType);
+        System.out.println("   Provider name: " + providerName);
+        System.out.println("   Username: " + username);
+        System.out.println("   Available providers: " + hoverCardProviders.size());
+        
+        for (HoverCardProvider provider : hoverCardProviders) {
+            System.out.println("   Trying provider: " + provider.getClass().getSimpleName());
+            
+            Optional<Map<String, String>> providerDetails = 
+                provider.provideHoverCardInfo(providerType, providerName, username, userInfo);
+            
+            if (providerDetails.isPresent()) {
+                System.out.println("🔌 Using provider: " + provider.getClass().getSimpleName());
+                details.putAll(providerDetails.get());
+                providerFound = true;
+                System.out.println("   Details found: " + details.size() + " entries");
+                break; // Use the first provider that returns details
+            } else {
+                System.out.println("   Provider returned no details");
+            }
+        }
+        
+        // If no provider was found or no details were provided, just return basic info
+        if (!providerFound || details.isEmpty()) {
+            System.out.println("ℹ️ No hover card details available for: " + secureId);
+            // We don't add any default entries - the UI will handle the empty case
+        }
+        
+        return new UserHoverCardInfo(
+            userInfo.id(),
+            userInfo.displayName(),
+            userInfo.avatarUrl(),
+            providerType,
+            details
+        );
+    }
+    
+    /**
      * Standard user info record that works across all authentication types
      */
     public record UserInfo(
@@ -115,6 +215,18 @@ public class UserInfoService {
             );
         }
     }
+    
+    /**
+     * User hover card information - contains additional details about a user
+     * that can be displayed when hovering over their name in the chat.
+     */
+    public record UserHoverCardInfo(
+        String id,                  // Secure, qualified ID (e.g., "oauth2:github:1002156")
+        String displayName,         // Human-readable name (e.g., "Kris De Volder")
+        String avatarUrl,           // URL to user's profile picture (if available)
+        String providerType,        // Authentication provider (e.g., "github", "saml", "local")
+        Map<String, String> details // Additional provider-specific details (key-value pairs)
+    ) {}
     
     // Private helper methods
     

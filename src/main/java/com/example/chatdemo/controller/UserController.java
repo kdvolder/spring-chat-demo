@@ -6,8 +6,10 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken;
 import com.example.chatdemo.service.UserInfoService;
 import com.example.chatdemo.service.UserInfoService.UserInfo;
+import com.example.chatdemo.service.UserInfoService.UserHoverCardInfo;
 
 @RestController
 @RequestMapping("/api")
@@ -65,5 +67,52 @@ public class UserController {
         }
         
         return ResponseEntity.ok(publicInfo);
+    }
+    
+    /**
+     * Get hover card information for any user.
+     * This endpoint returns additional details suitable for displaying in a hover card UI.
+     * 
+     * @param userId The user ID to get hover card info for
+     * @return Hover card information with user details
+     */
+    @GetMapping("/users/{userId}/hovercard")
+    public ResponseEntity<UserHoverCardInfo> getUserHoverCard(@PathVariable String userId) {
+        System.out.println("🔍 Hover card requested for user: " + userId);
+        
+        UserHoverCardInfo hoverCardInfo = userInfoService.getHoverCardInfoById(userId);
+        if (hoverCardInfo == null) {
+            System.out.println("❌ User not found: " + userId);
+            return ResponseEntity.notFound().build();
+        }
+        
+        System.out.println("✅ Returning hover card info for: " + hoverCardInfo.displayName());
+        return ResponseEntity.ok(hoverCardInfo);
+    }
+    
+    /**
+     * Get GitHub-specific hover card information for the current user.
+     * This endpoint demonstrates using the OAuth2 token from the deprecated client
+     * to make API calls to GitHub.
+     * 
+     * @param authentication The current user's authentication
+     * @return Hover card information with GitHub-specific details
+     */
+    @GetMapping("/user/github-info")
+    public ResponseEntity<UserHoverCardInfo> getGitHubInfo(Authentication authentication) {
+        if (!(authentication instanceof OAuth2AuthenticationToken oauth2Auth) || 
+            !"github".equals(oauth2Auth.getAuthorizedClientRegistrationId())) {
+            return ResponseEntity.badRequest().build();
+        }
+        
+        UserInfo userInfo = userInfoService.getCurrentUserInfo(authentication);
+        UserHoverCardInfo hoverCardInfo = userInfoService.getHoverCardInfoById(userInfo.id());
+        
+        if (hoverCardInfo == null) {
+            return ResponseEntity.notFound().build();
+        }
+        
+        System.out.println("✅ Returning GitHub info for: " + hoverCardInfo.displayName());
+        return ResponseEntity.ok(hoverCardInfo);
     }
 } 
