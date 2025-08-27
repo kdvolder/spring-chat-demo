@@ -13,13 +13,17 @@ function fetchUserInfo() {
         })
         .then(user => {
             currentUser = user;
-            document.getElementById('userInfo').textContent = `User: ${user.username} Connected`;
+            document.getElementById('userInfo').textContent = `User: ${user.displayName} Connected`;
             console.log('Current user:', user);
         })
         .catch(error => {
             console.error('Error fetching user info:', error);
-            document.getElementById('userInfo').textContent = 'User: Unknown';
-            currentUser = { username: 'Unknown', roles: [] };
+            document.getElementById('userInfo').textContent = 'Authentication Required';
+            // Don't set currentUser - this will prevent sending messages
+            // Redirect to login page after a short delay
+            setTimeout(() => {
+                window.location.href = '/login';
+            }, 2000);
         });
 }
 
@@ -47,9 +51,25 @@ function connect() {
 }
 
 function showMessage(message) {
+    // Always fetch the sender's display name from the public endpoint
+    // since the message only contains the sender ID
+    fetch(`/api/users/${message.senderId}/public`)
+        .then(response => response.json())
+        .then(userInfo => {
+            // Display the message with the fetched display name
+            displayMessageInUI(message, userInfo.displayName);
+        })
+        .catch(error => {
+            console.error('Error fetching user info:', error);
+            // Fall back to using the ID if we can't fetch the display name
+            displayMessageInUI(message, message.senderId);
+        });
+}
+
+function displayMessageInUI(message, displayName) {
     $('#messages').append(
         $('<div>').append(
-            $('<strong>').text(message.sender + ': '),
+            $('<strong>').text(displayName + ': '),
             $('<span>').text(message.content)
         )
     );
@@ -60,7 +80,7 @@ function sendMessage() {
     if (messageContent && stompClient && currentUser) {
         const chatMessage = {
             content: messageContent,
-            sender: currentUser.username
+            senderId: currentUser.id
         };
         
         stompClient.publish({
