@@ -17,4 +17,12 @@ spring:
             # For authorization_code flow, these are typical defaults. Spring Boot can often infer these.
             # authorization-grant-type: authorization_code
             # redirect-uri: "{baseUrl}/login/oauth2/code/{registrationId}"
-            # scope: user,public_repo # Example scopes 
+            # scope: user,public_repo # Example scopes
+
+# OAuth2 Demo Configuration
+oauth2:
+  demo:
+    # Switch between deprecation scenarios:
+    # - nimbus: Demonstrates NimbusAuthorizationCodeTokenResponseClient deprecation (TNZ-54246) 
+    # - converter: Demonstrates setTokenResponseConverter deprecation (TNZ-54245)
+    scenario: nimbus  # Default to nimbus scenario 
