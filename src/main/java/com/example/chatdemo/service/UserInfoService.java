@@ -302,9 +302,6 @@ public class UserInfoService {
         return "unknown";
     }
     
-    // These methods are kept for future use if needed
-    // Currently not used since we're passing the Authentication object directly to providers
-    
     /**
      * Extracts avatar URL for the authenticated user if available
      */
