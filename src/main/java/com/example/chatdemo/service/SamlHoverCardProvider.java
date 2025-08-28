@@ -4,6 +4,8 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 
+import org.springframework.security.core.Authentication;
+import org.springframework.security.saml2.provider.service.authentication.Saml2AuthenticatedPrincipal;
 import org.springframework.stereotype.Component;
 
 /**
@@ -16,15 +18,16 @@ public class SamlHoverCardProvider implements HoverCardProvider {
 
     @Override
     public Optional<Map<String, String>> provideHoverCardInfo(
-            String providerType,
-            String providerName,
-            String username,
-            UserInfoService.UserInfo baseInfo) {
+            Authentication authentication,
+            UserInfoService.UserInfo userInfo) {
         
-        // Check if this provider can handle the request
-        if (!"saml".equals(providerType)) {
+        // Check if this is a SAML authentication
+        if (!(authentication.getPrincipal() instanceof Saml2AuthenticatedPrincipal)) {
             return Optional.empty();
         }
+        
+        Saml2AuthenticatedPrincipal samlPrincipal = (Saml2AuthenticatedPrincipal) authentication.getPrincipal();
+        String username = samlPrincipal.getName();
         
         Map<String, String> details = new HashMap<>();
         details.put("Provider", "SAML");

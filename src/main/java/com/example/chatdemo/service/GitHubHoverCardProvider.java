@@ -9,7 +9,7 @@ import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.oauth2.client.OAuth2AuthorizedClient;
 import org.springframework.security.oauth2.client.OAuth2AuthorizedClientService;
 import org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken;
@@ -18,10 +18,12 @@ import org.springframework.web.client.RestTemplate;
 
 /**
  * GitHub-specific implementation of HoverCardProvider.
- * Uses the current user's OAuth2 token to fetch real data from the GitHub API.
+ * Uses the user's OAuth2 token to fetch real data from the GitHub API during authentication.
  * 
  * This demonstrates using the token from the deprecated
  * NimbusAuthorizationCodeTokenResponseClient to make API calls.
+ * 
+ * The data is fetched once during authentication and then cached for later use.
  */
 @Component
 public class GitHubHoverCardProvider implements HoverCardProvider {
@@ -31,50 +33,25 @@ public class GitHubHoverCardProvider implements HoverCardProvider {
 
     @Override
     public Optional<Map<String, String>> provideHoverCardInfo(
-            String providerType,
-            String providerName,
-            String username,
-            UserInfoService.UserInfo baseInfo) {
+            Authentication authentication,
+            UserInfoService.UserInfo userInfo) {
         
-        // Check if this provider can handle the request
-        if (!"oauth2".equals(providerType) || !"github".equals(providerName)) {
-            System.out.println("❌ GitHub provider cannot handle: " + providerType + ":" + providerName);
+        System.out.println("🚀 GitHub hover card provider checking authentication");
+        
+        // Check if the authentication is OAuth2 and specifically GitHub
+        if (!(authentication instanceof OAuth2AuthenticationToken oauth2Auth)) {
+            System.out.println("❌ Not an OAuth2 authentication: " + authentication.getClass().getSimpleName());
             return Optional.empty();
         }
-        
-        System.out.println("🚀 GitHub hover card provider for: " + username);
-        
-        // Get the current authenticated user
-        var authentication = SecurityContextHolder.getContext().getAuthentication();
-        
-        // Check if the current user is authenticated with OAuth2 and specifically GitHub
-        System.out.println("🔍 Checking current user authentication: " + 
-                          (authentication != null ? authentication.getClass().getSimpleName() : "null"));
-        
-        if (authentication == null) {
-            System.out.println("❌ No authentication found in SecurityContext");
-            return Optional.empty();
-        }
-        
-        if (!(authentication instanceof OAuth2AuthenticationToken)) {
-            System.out.println("❌ Current user is not authenticated with OAuth2");
-            System.out.println("   Authentication type: " + authentication.getClass().getSimpleName());
-            return Optional.empty();
-        }
-        
-        OAuth2AuthenticationToken oauth2Auth = (OAuth2AuthenticationToken) authentication;
-        System.out.println("✅ Current user is authenticated with OAuth2");
-        System.out.println("   Registration ID: " + oauth2Auth.getAuthorizedClientRegistrationId());
         
         if (!"github".equals(oauth2Auth.getAuthorizedClientRegistrationId())) {
-            System.out.println("❌ Current user is not authenticated with GitHub");
-            System.out.println("   Cannot provide GitHub hover card without a GitHub OAuth2 token");
+            System.out.println("❌ Not a GitHub OAuth2 authentication: " + oauth2Auth.getAuthorizedClientRegistrationId());
             return Optional.empty();
         }
         
-        System.out.println("✅ Current user is authenticated with GitHub OAuth2");
+        System.out.println("✅ GitHub OAuth2 authentication detected");
         
-        // Get the OAuth2 client for the current user
+        // Get the OAuth2 client directly from the authentication
         OAuth2AuthorizedClient client = null;
         try {
             String principalName = authentication.getName();
@@ -83,7 +60,7 @@ public class GitHubHoverCardProvider implements HoverCardProvider {
             client = clientService.loadAuthorizedClient("github", principalName);
             
             if (client == null) {
-                System.out.println("⚠️ No GitHub OAuth2 client found for the current user");
+                System.out.println("⚠️ No GitHub OAuth2 client found");
                 return Optional.empty();
             }
         } catch (Exception e) {
@@ -91,7 +68,7 @@ public class GitHubHoverCardProvider implements HoverCardProvider {
             return Optional.empty();
         }
         
-        // Now use the current user's OAuth2 client to make an API call about the target user
+        // Use the OAuth2 client to make an API call
         try {
             System.out.println("🔑 Using OAuth2 token from deprecated NimbusAuthorizationCodeTokenResponseClient");
             System.out.println("🔍 Making GitHub API call to get authenticated user's info");
@@ -104,8 +81,7 @@ public class GitHubHoverCardProvider implements HoverCardProvider {
             
             HttpEntity<String> entity = new HttpEntity<>(headers);
             
-            // First try to get the authenticated user's own information
-            // This will work regardless of the target username
+            // Get the authenticated user's own information
             ResponseEntity<Map<String, Object>> response = restTemplate.exchange(
                 "https://api.github.com/user",
                 HttpMethod.GET,
@@ -147,7 +123,6 @@ public class GitHubHoverCardProvider implements HoverCardProvider {
             
             System.out.println("✅ GitHub API call successful using OAuth2 token");
             System.out.println("👤 Retrieved info for authenticated user: " + userData.get("login"));
-            System.out.println("📝 Note: In a real app, we would use this token to fetch info about: " + username);
             
             return Optional.of(details);
             

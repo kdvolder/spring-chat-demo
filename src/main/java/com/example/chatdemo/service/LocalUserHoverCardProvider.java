@@ -4,6 +4,9 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 
+import org.springframework.security.core.Authentication;
+import org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken;
+import org.springframework.security.saml2.provider.service.authentication.Saml2AuthenticatedPrincipal;
 import org.springframework.stereotype.Component;
 
 /**
@@ -16,15 +19,20 @@ public class LocalUserHoverCardProvider implements HoverCardProvider {
 
     @Override
     public Optional<Map<String, String>> provideHoverCardInfo(
-            String providerType,
-            String providerName,
-            String username,
-            UserInfoService.UserInfo baseInfo) {
+            Authentication authentication,
+            UserInfoService.UserInfo userInfo) {
         
-        // Check if this provider can handle the request
-        if (!"local".equals(providerType)) {
+        // Skip OAuth2 and SAML authentications - they have their own providers
+        if (authentication instanceof OAuth2AuthenticationToken) {
             return Optional.empty();
         }
+        
+        if (authentication.getPrincipal() instanceof Saml2AuthenticatedPrincipal) {
+            return Optional.empty();
+        }
+        
+        // This is a local user authentication
+        String username = authentication.getName();
         
         Map<String, String> details = new HashMap<>();
         details.put("Provider", "Local Authentication");

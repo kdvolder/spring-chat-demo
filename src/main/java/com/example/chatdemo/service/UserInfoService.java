@@ -28,6 +28,9 @@ public class UserInfoService {
     // In a real application, this would be backed by a database
     private final Map<String, UserInfo> userCache = new ConcurrentHashMap<>();
     
+    // In-memory cache of hover card info by secure ID
+    private final Map<String, UserHoverCardInfo> hoverCardCache = new ConcurrentHashMap<>();
+    
     @Autowired
     private List<HoverCardProvider> hoverCardProviders;
     
@@ -63,6 +66,9 @@ public class UserInfoService {
         
         // Cache the user info for later lookup
         userCache.put(secureId, userInfo);
+        
+        // Pre-fetch and cache hover card info during authentication
+        prefetchHoverCardInfo(secureId, authentication, userInfo);
         
         return userInfo;
     }
@@ -101,88 +107,42 @@ public class UserInfoService {
      */
     public UserHoverCardInfo getHoverCardInfoById(String secureId) {
         System.out.println("🔍 Getting hover card for user ID: " + secureId);
-        System.out.println("🗄️ Current cache entries: " + userCache.keySet());
+        
+        // First check if we have pre-cached hover card info
+        UserHoverCardInfo cachedInfo = hoverCardCache.get(secureId);
+        if (cachedInfo != null) {
+            System.out.println("✅ Found pre-cached hover card info for: " + cachedInfo.displayName());
+            return cachedInfo;
+        }
+        
+        System.out.println("🔄 No cached hover card info found, checking user cache");
+        System.out.println("🗄️ Current user cache entries: " + userCache.keySet());
         
         UserInfo userInfo = userCache.get(secureId);
         if (userInfo == null) {
             System.out.println("❌ User not found in cache: " + secureId);
-            
-            // For demo purposes, create a fake user if not found
-            System.out.println("🆕 Creating demo user for: " + secureId);
-            userInfo = new UserInfo(
-                secureId,
-                "Demo User",
-                List.of("ROLE_USER"),
-                null
-            );
-            userCache.put(secureId, userInfo);
-        } else {
-            System.out.println("✅ User found in cache: " + userInfo.displayName());
+            return null; // No hover card for unknown users
         }
         
-        // Parse the user ID components
-        String providerType = "unknown";
-        String providerName = null;
-        String username = secureId;
+        System.out.println("✅ User found in cache: " + userInfo.displayName());
+        System.out.println("ℹ️ No hover card details available for: " + secureId);
         
-        // Extract provider type and name from the ID
-        if (secureId.contains(":")) {
-            String[] parts = secureId.split(":");
-            providerType = parts[0];
-            
-            if (parts.length > 2) {
-                providerName = parts[1];
-                username = parts[2];
-            } else if (parts.length > 1) {
-                username = parts[1];
-            }
-        }
+        // Create a basic hover card with no details
+        // We parse the ID to get the provider type
+        String providerType = parseProviderType(secureId);
         
-        System.out.println("🔍 Parsed user ID: type=" + providerType + 
-                          ", name=" + providerName + 
-                          ", username=" + username);
-        
-        // Create basic hover card info
-        Map<String, String> details = new HashMap<>();
-        
-        // Try to find a provider that can handle this user
-        boolean providerFound = false;
-        System.out.println("🔍 Looking for hover card providers for user: " + secureId);
-        System.out.println("   Provider type: " + providerType);
-        System.out.println("   Provider name: " + providerName);
-        System.out.println("   Username: " + username);
-        System.out.println("   Available providers: " + hoverCardProviders.size());
-        
-        for (HoverCardProvider provider : hoverCardProviders) {
-            System.out.println("   Trying provider: " + provider.getClass().getSimpleName());
-            
-            Optional<Map<String, String>> providerDetails = 
-                provider.provideHoverCardInfo(providerType, providerName, username, userInfo);
-            
-            if (providerDetails.isPresent()) {
-                System.out.println("🔌 Using provider: " + provider.getClass().getSimpleName());
-                details.putAll(providerDetails.get());
-                providerFound = true;
-                System.out.println("   Details found: " + details.size() + " entries");
-                break; // Use the first provider that returns details
-            } else {
-                System.out.println("   Provider returned no details");
-            }
-        }
-        
-        // If no provider was found or no details were provided, just return basic info
-        if (!providerFound || details.isEmpty()) {
-            System.out.println("ℹ️ No hover card details available for: " + secureId);
-            // We don't add any default entries - the UI will handle the empty case
-        }
-        
-        return new UserHoverCardInfo(
+        UserHoverCardInfo basicInfo = new UserHoverCardInfo(
             userInfo.id(),
             userInfo.displayName(),
             userInfo.avatarUrl(),
             providerType,
-            details
+            new HashMap<>() // Empty details
         );
+        
+        // Cache this basic info to avoid repeated lookups
+        hoverCardCache.put(secureId, basicInfo);
+        
+        return basicInfo;
     }
     
     /**
@@ -275,6 +235,75 @@ public class UserInfoService {
         // Regular username/password (UserDetails)
         return authentication.getName();
     }
+    
+    /**
+     * Pre-fetches hover card information during authentication and caches it
+     * This is called during the initial authentication flow to ensure we have
+     * hover card data ready when needed, without having to make API calls later.
+     */
+    private void prefetchHoverCardInfo(String secureId, Authentication authentication, UserInfo userInfo) {
+        System.out.println("🔄 Pre-fetching hover card info for: " + secureId);
+        
+        // Parse the user ID components for the hover card info
+        String providerType = parseProviderType(secureId);
+        
+        // Create basic hover card info
+        Map<String, String> details = new HashMap<>();
+        
+        // Try to find a provider that can handle this user
+        boolean providerFound = false;
+        System.out.println("🔍 Looking for hover card providers during authentication");
+        System.out.println("   Authentication type: " + authentication.getClass().getSimpleName());
+        System.out.println("   Available providers: " + hoverCardProviders.size());
+        
+        // Pass the authentication object directly to providers
+        for (HoverCardProvider provider : hoverCardProviders) {
+            System.out.println("   Trying provider: " + provider.getClass().getSimpleName());
+            
+            Optional<Map<String, String>> providerDetails = 
+                provider.provideHoverCardInfo(authentication, userInfo);
+            
+            if (providerDetails.isPresent()) {
+                System.out.println("🔌 Using provider: " + provider.getClass().getSimpleName());
+                details.putAll(providerDetails.get());
+                providerFound = true;
+                System.out.println("   Details found: " + details.size() + " entries");
+                break; // Use the first provider that returns details
+            } else {
+                System.out.println("   Provider returned no details");
+            }
+        }
+        
+        // Create and cache the hover card info
+        UserHoverCardInfo hoverCardInfo = new UserHoverCardInfo(
+            userInfo.id(),
+            userInfo.displayName(),
+            userInfo.avatarUrl(),
+            providerType,
+            details
+        );
+        
+        hoverCardCache.put(secureId, hoverCardInfo);
+        
+        if (providerFound) {
+            System.out.println("✅ Successfully pre-cached hover card info for: " + userInfo.displayName());
+        } else {
+            System.out.println("ℹ️ Pre-cached basic hover card info without details for: " + userInfo.displayName());
+        }
+    }
+    
+    /**
+     * Parse the provider type from a secure ID
+     */
+    private String parseProviderType(String secureId) {
+        if (secureId.contains(":")) {
+            return secureId.substring(0, secureId.indexOf(":"));
+        }
+        return "unknown";
+    }
+    
+    // These methods are kept for future use if needed
+    // Currently not used since we're passing the Authentication object directly to providers
     
     /**
      * Extracts avatar URL for the authenticated user if available
